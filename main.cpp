@@ -1,6 +1,10 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <vector>
+#include <algorithm>
+#include <execution>
+#include <sstream>
 
 #include <mpirxx.h>
 
@@ -15,8 +19,9 @@ int per(mpz_class n)
         mpz_class m;
         m = 1;
 
-        for(auto c : nString)
+        for(const auto c : nString)
         {
+            if(c == '0') return step + 1;
             m *= (c - '0');
         }
         nString = m.get_str();
@@ -116,8 +121,18 @@ int main()
 
     for(int nDigits = minDigits; nDigits <= maxDigits; ++nDigits)
     {
-        for(int n2 = nDigits; n2 >= 0; --n2)
+        std::vector<int> toTest;
+        for(int k = nDigits; k >= 0; --k)
         {
+            toTest.push_back(k);
+        }
+
+        std::for_each(
+            std::execution::par_unseq,
+            toTest.begin(),
+            toTest.end(),
+            [&](auto&& n2)
+            {
             for(int n3 = nDigits - n2; n3 >= 0; --n3)
             {
                 if(n2 == 0)
@@ -134,7 +149,9 @@ int main()
                             auto currentTime = std::chrono::high_resolution_clock::now();
                             auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - start).count();
 
-                            std::cout << nMP << " | " << normalisedToNatural(n.get_str()) << " (" << elapsedTime << " ms)\n";
+                            std::stringstream stream;
+                            stream << nMP << " | " << normalisedToNatural(n.get_str()) << " (" << elapsedTime << " ms)\n";
+                            std::cout << stream.str();
                         }
                     }
                 }
@@ -150,17 +167,19 @@ int main()
                         auto currentTime = std::chrono::high_resolution_clock::now();
                         auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - start).count();
 
-                        std::cout << nMP << " | " << normalisedToNatural(n.get_str()) << " (" << elapsedTime << " ms)\n";
+                        std::stringstream stream;
+                        stream << nMP << " | " << normalisedToNatural(n.get_str()) << " (" << elapsedTime << " ms)\n";
+                        std::cout << stream.str();
                     }
                 }
 
             }
-        }
+            });
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - start).count();
 
-        std::cout << "Checkd " << nDigits << " digits numbers in " << elapsedTime << " ms\n";
+        std::cout << "Checked " << nDigits << " digits numbers in " << elapsedTime << " ms\n";
     }
 
     return 0;

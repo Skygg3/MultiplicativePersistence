@@ -14,3 +14,6 @@ DEPENDPATH += $$PWD/../mpir-3.0.0/dll/x64/Release
 
 DISTFILES += \
     README.md
+
+QMAKE_CXXFLAGS += -fopenmp
+LIBS += -fopenmp
