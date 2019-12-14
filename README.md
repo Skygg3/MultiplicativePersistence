@@ -5,6 +5,8 @@ http://mpir.org/
 
 # Performances
 
+Processor: i5-9600K @ 3.70GHz
+
 |  Multiplicative  Persistence  |  Naive  version  |
 |  :-------------------------:  |  :------------:  |
 |  0  |  0 ms  |
