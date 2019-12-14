@@ -1,20 +1,25 @@
 #include <iostream>
 #include <string>
 
-void per(long long n)
+#include <mpirxx.h>
+
+void per(mpz_class n)
 {
     int step = 0;
-    std::string nString = std::to_string(n);
 
-   std:: cout << nString << "\n";
+    std::string nString = n.get_str();
+    std:: cout << nString << "\n";
+
     while (nString.length() > 1)
     {
-        long long m = 1;
+        mpz_class m;
+        m = 1;
+
         for(auto c : nString)
         {
             m *= (c - '0');
         }
-        nString = std::to_string(m);
+        nString = m.get_str();
         std::cout << nString << "\n";
         ++step;
     }
@@ -24,6 +29,10 @@ void per(long long n)
 
 int main()
 {
-    per(277777788888899);
+    mpz_class n;
+    n = "277777788888899999999999999999999";
+
+    per(n);
+
     return 0;
 }
