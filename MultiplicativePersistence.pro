@@ -1,5 +1,5 @@
 TEMPLATE = app
-CONFIG += console c++11
+CONFIG += console c++17
 CONFIG -= app_bundle
 CONFIG -= qt
 
@@ -11,3 +11,6 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../mpir-3.0.0/dll/x64/d
 
 INCLUDEPATH += $$PWD/../mpir-3.0.0/dll/x64/Release
 DEPENDPATH += $$PWD/../mpir-3.0.0/dll/x64/Release
+
+DISTFILES += \
+    README.md
