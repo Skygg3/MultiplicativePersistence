@@ -4,7 +4,8 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-        main.cpp
+        main.cpp \
+        timer.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../mpir-3.0.0/dll/x64/release/ -lmpir
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../mpir-3.0.0/dll/x64/debug/ -lmpir
@@ -15,5 +16,5 @@ DEPENDPATH += $$PWD/../mpir-3.0.0/dll/x64/Release
 DISTFILES += \
     README.md
 
-QMAKE_CXXFLAGS += -fopenmp
-LIBS += -fopenmp
+HEADERS += \
+    timer.h

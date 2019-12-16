@@ -1,3 +1,4 @@
+// C++ Standard Library
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -6,14 +7,21 @@
 #include <execution>
 #include <sstream>
 
+// MPIR
 #include <mpirxx.h>
 
-int per(mpz_class n)
+#include "timer.h"
+
+/**
+ * @brief Calculated the multiplicative persistence of a number
+ * @param number    Input number
+ * @return  Multiplicative persistence of the given number
+ */
+int multiplicativePersistence(const mpz_class &number)
 {
-    int step = 0;
+    std::string nString = number.get_str();
 
-    std::string nString = n.get_str();
-
+    int requiredSteps = 0;
     while (nString.length() > 1)
     {
         mpz_class m;
@@ -21,16 +29,22 @@ int per(mpz_class n)
 
         for(const auto c : nString)
         {
-            if(c == '0') return step + 1;
+            if(c == '0') return requiredSteps + 1;
             m *= (c - '0');
         }
         nString = m.get_str();
-        ++step;
+        ++requiredSteps;
     }
 
-    return step;
+    return requiredSteps;
 }
 
+/**
+ * @brief Utility function to create a std::string formed by the repetition of another std::string
+ * @param toRepeat  String to repeat
+ * @param nRepeat   Number of repetition
+ * @return  Repeated string
+ */
 std::string repeatString(const std::string &toRepeat, int nRepeat)
 {
     std::string output;
@@ -43,6 +57,11 @@ std::string repeatString(const std::string &toRepeat, int nRepeat)
     return output;
 }
 
+/**
+ * @brief Transforms a number in normalised form into a natural form
+ * @param normalisedNumber  A number in normalised form
+ * @return Input number in natural form
+ */
 std::string normalisedToNatural(const std::string &normalisedNumber)
 {
     int nb2 = 0;
@@ -104,34 +123,44 @@ std::string normalisedToNatural(const std::string &normalisedNumber)
     return output;
 }
 
+/**
+ * @brief Constructs a normalised number
+ * @param nb2   Number of 2 in the number
+ * @param nb3   Number of 3 in the number
+ * @param nb5   Number of 5 in the number
+ * @param nb7   Number of 7 in the number
+ * @return      The normalised number defined by the parameters
+ */
 std::string constructNormalisedNumber(int nb2, int nb3, int nb5, int nb7)
 {
     return repeatString("2", nb2) + repeatString("3", nb3) + repeatString("5", nb5) + repeatString("7", nb7);
 }
 
+
 int main()
 {
-    mpz_class n;
-
-    auto start = std::chrono::high_resolution_clock::now();
-
+    // Size of the numbers to test
     int minDigits = 1;
-    int maxDigits = 100;
+    int maxDigits = 200;
 
+    Timer timer;
 
+    timer.start();
     for(int nDigits = minDigits; nDigits <= maxDigits; ++nDigits)
     {
-        std::vector<int> toTest;
+        // Creates a vector containing all possible number of 2 in the number
+        std::vector<int> n2Vector;
         for(int k = nDigits; k >= 0; --k)
         {
-            toTest.push_back(k);
+            n2Vector.push_back(k);
         }
 
+        // Start calculation in multiple thread
         std::for_each(
             std::execution::par_unseq,
-            toTest.begin(),
-            toTest.end(),
-            [&](auto&& n2)
+            n2Vector.begin(),
+            n2Vector.end(),
+            [&](const auto &n2)
             {
             for(int n3 = nDigits - n2; n3 >= 0; --n3)
             {
@@ -141,16 +170,15 @@ int main()
                     {
                         int n7 = nDigits - n2 - n3 - n5;
 
-                        n = constructNormalisedNumber(n2, n3, n5, n7);
-                        int nMP = per(n);
+                        mpz_class number;
+                        number = constructNormalisedNumber(n2, n3, n5, n7);
+                        int numberMP = multiplicativePersistence(number);
 
-                        if (nMP >= 10)
+                        if (numberMP >= 10)
                         {
-                            auto currentTime = std::chrono::high_resolution_clock::now();
-                            auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - start).count();
-
+                            // Store the output in a std::stringstream to cout it to prevent threads from writing at the same time
                             std::stringstream stream;
-                            stream << nMP << " | " << normalisedToNatural(n.get_str()) << " (" << elapsedTime << " ms)\n";
+                            stream << numberMP << " | " << normalisedToNatural(number.get_str()) << " (" << timer.elapsedMilliseconds() << " ms)\n";
                             std::cout << stream.str();
                         }
                     }
@@ -159,16 +187,15 @@ int main()
                     int n5 = 0;
                     int n7 = nDigits - n2 - n3 - n5;
 
-                    n = constructNormalisedNumber(n2, n3, n5, n7);
-                    int nMP = per(n);
+                    mpz_class number;
+                    number = constructNormalisedNumber(n2, n3, n5, n7);
+                    int numberMP = multiplicativePersistence(number);
 
-                    if (nMP >= 10)
+                    if (numberMP >= 10)
                     {
-                        auto currentTime = std::chrono::high_resolution_clock::now();
-                        auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - start).count();
-
+                        // Store the output in a std::stringstream to cout it to prevent threads from writing at the same time
                         std::stringstream stream;
-                        stream << nMP << " | " << normalisedToNatural(n.get_str()) << " (" << elapsedTime << " ms)\n";
+                        stream << numberMP << " | " << normalisedToNatural(number.get_str()) << " (" << timer.elapsedMilliseconds() << " ms)\n";
                         std::cout << stream.str();
                     }
                 }
@@ -176,10 +203,7 @@ int main()
             }
             });
 
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - start).count();
-
-        std::cout << "Checked " << nDigits << " digits numbers in " << elapsedTime << " ms\n";
+        std::cout << "Checked " << nDigits << " digits numbers in " << timer.elapsedMilliseconds() << " ms\n";
     }
 
     return 0;
